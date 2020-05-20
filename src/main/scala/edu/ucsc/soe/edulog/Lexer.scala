@@ -67,6 +67,7 @@ object Lexer extends RegexParsers {
     def widthDecl   : Parser[WIDTH_DECL] = "[" ~ number ~ "]" ^^ {
         case _ ~ n ~ _ => WIDTH_DECL(n.num)
     }
+    
     def indexing    : Parser[INDEXING] = "[" ~ number ~ ":" ~ number ~ "]" ^^ {
         case _ ~ high ~ _ ~ low ~ _ => INDEXING(high.num, low.num)
     }
