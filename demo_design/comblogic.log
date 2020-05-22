@@ -1,0 +1,5 @@
+output = module CombLogic(in_a, in_b, in_c){
+
+	output = (~in_a & in_b) | (~in_b & in_a & in_c)
+}
+
