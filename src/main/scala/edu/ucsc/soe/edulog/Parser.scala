@@ -46,7 +46,21 @@ case class Net(name: String, high: Integer = null, low: Integer = null) extends 
 
 case class NumericLiteral(value: BigInt) extends Expr // note: width is in Expr
 
-class Parser extends StandardTokenParsers {
+/**
+ * Parser class for numeric types. Needs to be separate since it's not possible with StandardTokenParsers
+ */
+object EdulogNumericParser extends RegexParsers {
+    def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedDecLit | basedBinLit ^^ NumericLiteral
+    
+    def basedHexLit: Parser[NumericLiteral] = pos(regex("""h[0-9A-Fa-f_]+""".r)) ^^ {
+        case 
+    }
+}
+
+/**
+ * Main parser class
+ */
+object EdulogParser extends StandardTokenParsers {
     lexical.reserved += ("module", "register", "mux", "reduce")
     lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>")
     
@@ -100,14 +114,10 @@ class Parser extends StandardTokenParsers {
         }
     }
     
-    def muxCase: Parser[Tuple2[Integer, Expr]] = basedNumericLit ~ ":" ~ expr ^^ {
+    def muxCase: Parser[Tuple2[Integer, Expr]] = EdulogNumericParser.basedNumericLit ~ ":" ~ expr ^^ {
         case n ~ ":" ~ e => (n, e)
     }
     
-    def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedBinLit | basedDecLit
-    
-    def basedDecLit: Parser[NumericLiteral] = "d" ~ numericLit ^^ {
-    }
     
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
     //def topLevel: Parser[_] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}"

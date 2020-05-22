@@ -1,7 +1,7 @@
-import edu.ucsc.soe.edulog.Parser
+import edu.ucsc.soe.edulog._
 
 object SimpleTester extends App {
-    val p = new Parser()
+    val p = new EdulogParser()
     
     val res = p.parseAll(
         """
