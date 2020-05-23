@@ -2,6 +2,7 @@ package edu.ucsc.soe.edulog
 
 import scala.util.parsing.input.Positional
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
+import scala.util.parsing.combinator.RegexParsers
 import scala.collection.mutable.{Map => MutableMap}
 
 sealed trait ASTNode extends Positional
@@ -34,27 +35,27 @@ object BinaryOpType extends Enumeration {
     val ShiftRight = Value(">>")
     val Xor = Value("^")   
 }
-case class BinaryOp(op: BinaryOpType, left: Expr, right: Expr) extends Expr
+case class BinaryOp(op: BinaryOpType.Value, left: Expr, right: Expr) extends Expr
 
 object UnaryOpType extends Enumeration {
     val Complement = Value("~")
-    val ReduceAnd, ReduceOr, ReduceXor // these don't have a manual value since they're parsed differently    
+    val ReduceAnd, ReduceOr, ReduceXor = Value // these don't have a manual value since they're parsed differently    
 }
-case class UnaryOp(op: UnaryOpType, operand: Expr) extends Expr
+case class UnaryOp(op: UnaryOpType.Value, operand: Expr) extends Expr
 
 case class Net(name: String, high: Integer = null, low: Integer = null) extends Expr
 
-case class NumericLiteral(value: BigInt) extends Expr // note: width is in Expr
+case class NumericLiteral(value: Int) extends Expr // note: width is in Expr
 
 /**
  * Parser class for numeric types. Needs to be separate since it's not possible with StandardTokenParsers
  */
-object EdulogNumericParser extends RegexParsers {
-    def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedDecLit | basedBinLit ^^ NumericLiteral
-    
-    def basedHexLit: Parser[NumericLiteral] = pos(regex("""h[0-9A-Fa-f_]+""".r)) ^^ {
-        case 
-    }
+// TODO: get rid of all of this and subclass StdLexical to modify lexer to accept based numbers
+//   can probably use https://github.com/stephentu/scala-sql-parser/blob/master/src/main/scala/parser.scala for inspiration
+class EdulogLexical extends StdLexical {
+    override def token: Parser[Token] =
+        (identChar ~ rep(identChar | digit)) ^^ { case first ~ rest => processIdent(first :: rest mkString "") }
+        | '\'' ~ 'h' ~ rep1(hexDigit) ^^ { case _ ~ _ ~ digits => NumericLit(/* TODO */) }
 }
 
 /**
@@ -62,7 +63,7 @@ object EdulogNumericParser extends RegexParsers {
  */
 object EdulogParser extends StandardTokenParsers {
     lexical.reserved += ("module", "register", "mux", "reduce")
-    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>")
+    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'")
     
     def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
@@ -107,17 +108,18 @@ object EdulogParser extends StandardTokenParsers {
         case _ ~ "^" ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
     }
     
-    def mux: Parser[Mux] = "mux" ~ "(" ~> expr <~ ")" ~ "{" ~> rep1(muxCase) <~ "}" ^^ {
-        case sel ~ cases => {
+    def mux: Parser[Mux] = "mux" ~ "(" ~ expr ~ ")" ~ "{" ~ rep1(muxCase) ~ "}" ^^ {
+        case _ ~ _ ~ sel ~ _ ~ _ ~ cases ~ _ => {
             // TODO: check that all cases are handled and that the cases array has the correct width
-            Mux(sel, cases.sortWith(_._1 < _._1))  // muxCase returns a tuple, sort by first element
+            Mux(sel, cases.sortWith(_._1 < _._1).map(_ => _._2))  // muxCase returns a tuple, sort by first element
         }
     }
     
     def muxCase: Parser[Tuple2[Integer, Expr]] = EdulogNumericParser.basedNumericLit ~ ":" ~ expr ^^ {
         case n ~ ":" ~ e => (n, e)
     }
-    
+
+    def expr: Parser[Expr] = net | basedNumericLit    
     
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
     //def topLevel: Parser[_] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}"
