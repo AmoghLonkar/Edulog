@@ -2,9 +2,9 @@ out[3] = module Counter(val, clr, ld, en){
 	init = 0
 	reg1[3] = register(init)
 	
-	int_3 = mux(reg1, (reg1 + 1), en)
-	int_2 = mux(int_3, val, ld)
-	int_1 = mux(int_2, 0, clr)
+	int_3 = mux(en, reg1, (reg1 + 1))
+	int_2 = mux(ld, int_3, val)
+	int_1 = mux(clr, int_2, 0)
 	
 	reg1 = int_1 
 	
