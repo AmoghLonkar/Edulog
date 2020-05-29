@@ -1,9 +1,11 @@
 package edu.ucsc.soe.edulog
 
 import scala.util.parsing.input.Positional
-import scala.util.parsing.combinator.syntactical.StandardTokenParsers
-import scala.util.parsing.combinator.RegexParsers
-import scala.collection.mutable.{Map => MutableMap}
+import scala.util.parsing.combinator._
+import scala.util.parsing.combinator.lexical._
+import scala.util.parsing.combinator.syntactical._
+import scala.util.parsing.combinator.token._
+import scala.util.parsing.input.CharArrayReader.EofCh
 
 sealed trait ASTNode extends Positional
 case class ModuleDeclaration(name: String, inputs: List[Net], outputs: List[Net], body: List[Assignment]) extends ASTNode
@@ -46,22 +48,43 @@ case class UnaryOp(op: UnaryOpType.Value, operand: Expr) extends Expr
 case class Net(name: String, high: Integer = null, low: Integer = null) extends Expr
 
 case class NumericLiteral(value: Int) extends Expr // note: width is in Expr
+object NumericLiteralBase extends Enumeration {
+    type NumericLiteralBase = Value
+    val Decimal, Hexadecimal, Binary = Value
+}
 
 /**
  * Parser class for numeric types. Needs to be separate since it's not possible with StandardTokenParsers
  */
 // TODO: get rid of all of this and subclass StdLexical to modify lexer to accept based numbers
 //   can probably use https://github.com/stephentu/scala-sql-parser/blob/master/src/main/scala/parser.scala for inspiration
-class EdulogLexical extends StdLexical {
-    override def token: Parser[Token] =
-        (identChar ~ rep(identChar | digit)) ^^ { case first ~ rest => processIdent(first :: rest mkString "") }
-        | '\'' ~ 'h' ~ rep1(hexDigit) ^^ { case _ ~ _ ~ digits => NumericLit(/* TODO */) }
-}
 
 /**
  * Main parser class
  */
 object EdulogParser extends StandardTokenParsers {
+    class EdulogLexical extends StdLexical {
+        sealed trait EdulogNumericLiteral extends Token
+        case class HexLit(chars: String) extends EdulogNumericLiteral
+        case class BinLit(chars: String) extends EdulogNumericLiteral
+        case class DecLit(chars: String) extends EdulogNumericLiteral
+
+        override def token: Parser[Token] = (
+            identChar ~ rep(identChar | digit) ^^ { case first ~ rest => processIdent(first :: rest mkString "") }
+            | '\'' ~ 'h' ~ rep1(hexDigit) ^^ { case _ ~ _ ~ digits => HexLit(digits mkString "") }
+            | '\'' ~ 'b' ~ rep1(binDigit) ^^ { case _ ~ _ ~ digits => BinLit(digits mkString "") }
+            | '\'' ~ 'd' ~ rep1(decDigit) ^^ { case _ ~ _ ~ digits => DecLit(digits mkString "") }
+            | EofCh     ^^^ EOF
+            | delim
+            | failure("illegal character")
+        )
+
+        def hexDigit = elem("hex digit", "01234567890abcdefABCDEF".contains(_))
+        def binDigit = elem("bin digit", "01".contains(_))
+        def decDigit = elem("dec digit", "01234567890".contains(_))
+    }
+    override val lexical = new EdulogLexical
+
     lexical.reserved += ("module", "register", "mux", "reduce")
     lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'")
     
@@ -107,7 +130,8 @@ object EdulogParser extends StandardTokenParsers {
         case _ ~ "|" ~ e => UnaryOp(UnaryOpType.ReduceOr, e)
         case _ ~ "^" ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
     }
-    
+   
+    /*
     def mux: Parser[Mux] = "mux" ~ "(" ~ expr ~ ")" ~ "{" ~ rep1(muxCase) ~ "}" ^^ {
         case _ ~ _ ~ sel ~ _ ~ _ ~ cases ~ _ => {
             // TODO: check that all cases are handled and that the cases array has the correct width
@@ -115,9 +139,14 @@ object EdulogParser extends StandardTokenParsers {
         }
     }
     
-    def muxCase: Parser[Tuple2[Integer, Expr]] = EdulogNumericParser.basedNumericLit ~ ":" ~ expr ^^ {
+    def muxCase: Parser[Tuple2[Integer, Expr]] = basedNumericLit ~ ":" ~ expr ^^ {
         case n ~ ":" ~ e => (n, e)
-    }
+    }*/
+
+    def basedHexLit: Parser[NumericLiteral] = elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 16))
+    def basedBinLit: Parser[NumericLiteral] = elem("bin lit", _.isInstanceOf[lexical.BinLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 2))
+    def basedDecLit: Parser[NumericLiteral] = elem("dec lit", _.isInstanceOf[lexical.DecLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 10))
+    def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedBinLit | basedDecLit
 
     def expr: Parser[Expr] = net | basedNumericLit    
     
