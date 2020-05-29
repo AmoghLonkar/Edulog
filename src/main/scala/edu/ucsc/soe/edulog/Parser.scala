@@ -71,6 +71,7 @@ object EdulogParser extends StandardTokenParsers {
 
         override def token: Parser[Token] = (
             identChar ~ rep(identChar | digit) ^^ { case first ~ rest => processIdent(first :: rest mkString "") }
+            | rep1(digit) ^^ { case i => NumericLit(i mkString "") }
             | '\'' ~ 'h' ~ rep1(hexDigit) ^^ { case _ ~ _ ~ digits => HexLit(digits mkString "") }
             | '\'' ~ 'b' ~ rep1(binDigit) ^^ { case _ ~ _ ~ digits => BinLit(digits mkString "") }
             | '\'' ~ 'd' ~ rep1(decDigit) ^^ { case _ ~ _ ~ digits => DecLit(digits mkString "") }
@@ -86,9 +87,9 @@ object EdulogParser extends StandardTokenParsers {
     override val lexical = new EdulogLexical
 
     lexical.reserved += ("module", "register", "mux", "reduce")
-    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'")
+    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>")
     
-    def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
+    def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
             // TODO: check if outputs, inputs are declared correctly
             ModuleDeclaration(modName, inputs, outputs, assignments)
@@ -99,23 +100,22 @@ object EdulogParser extends StandardTokenParsers {
     /**
      * Nets can take the form of ident, ident[n], ident[hi:lo]
      */
-    def net: Parser[Net] = {
-        (ident ~ "[" ~ numericLit ~ ":" ~ numericLit ~ "]") ^^ {
-            case netName ~ "[" ~ hi ~ ":" ~ lo ~ "]" => Net(netName, hi.toInt, lo.toInt)
-        } |
-        (ident ~ "[" ~ numericLit ~ "]") ^^ {
-            case netName ~ "[" ~ n ~ "]" => Net(netName, n.toInt, n.toInt)
-        } |
-        (ident) ^^ {
-            case netName => Net(netName, null, null)
-        }
+    def netHiLo: Parser[Net] = ident ~ "[" ~ numericLit ~ ":" ~ numericLit ~ "]" ^^ {
+        case netName ~ "[" ~ hi ~ ":" ~ lo ~ "]" => Net(netName, hi.toInt, lo.toInt)
     }
-    
+    def netOne: Parser[Net] = ident ~ "[" ~ numericLit ~ "]" ^^ {
+        case netName ~ "[" ~ n ~ "]" => Net(netName, n.toInt, n.toInt)
+    }
+    def netNameOnly: Parser[Net] = ident ^^ {
+        case netName => Net(netName, null, null)
+    }
+    def net: Parser[Net] = netHiLo | netOne | netNameOnly
+
     def assignment: Parser[Assignment] = rep1sep(net, ",") ~ "=" ~ assignmentRHS ^^ {
         case destNets ~ "=" ~ rhs => Assignment(destNets, rhs)
     }
     
-    def assignmentRHS: Parser[AssignmentRHS] = registerCall | moduleCall /* | Expr */ 
+    def assignmentRHS: Parser[AssignmentRHS] = registerCall | moduleCall | expr
     
     def registerCall: Parser[RegisterCall] = "register" ~ "(" ~> net <~ ")" ^^ {
         case theNet => RegisterCall(theNet)
@@ -143,9 +143,15 @@ object EdulogParser extends StandardTokenParsers {
         case n ~ ":" ~ e => (n, e)
     }*/
 
-    def basedHexLit: Parser[NumericLiteral] = elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 16))
-    def basedBinLit: Parser[NumericLiteral] = elem("bin lit", _.isInstanceOf[lexical.BinLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 2))
-    def basedDecLit: Parser[NumericLiteral] = elem("dec lit", _.isInstanceOf[lexical.DecLit]) ^^ NumericLiteral(Integer.parseInt(_.chars, 10))
+    def basedHexLit: Parser[NumericLiteral] = elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ {
+        case c => NumericLiteral(Integer.parseInt(c.chars, 16))
+    }
+    def basedBinLit: Parser[NumericLiteral] = elem("bin lit", _.isInstanceOf[lexical.BinLit]) ^^ {
+        case c => NumericLiteral(Integer.parseInt(c.chars, 2))
+    }
+    def basedDecLit: Parser[NumericLiteral] = elem("dec lit", _.isInstanceOf[lexical.DecLit]) ^^ {
+        case c => NumericLiteral(Integer.parseInt(c.chars, 10))
+    }
     def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedBinLit | basedDecLit
 
     def expr: Parser[Expr] = net | basedNumericLit    
