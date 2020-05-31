@@ -177,7 +177,7 @@ object EdulogParser extends StandardTokenParsers {
         exprEquality * (
             "^" ^^^ { (a, b) => BinaryOp(BinaryOpType.BitwiseXor, a, b) }
             | "~^" ^^^ { (a, b) => UnaryOp(UnaryOpType.Complement, BinaryOp(BinaryOpType.BitwiseXor, a, b)) } ) // don't have XNOR in FIRRTL
-        )
+       // )
     def exprEquality: Parser[Expr] =
         exprInequality * (
             "==" ^^^ { (a, b) => BinaryOp(BinaryOpType.Equals, a, b) }
@@ -217,12 +217,11 @@ object EdulogParser extends StandardTokenParsers {
         "{" ~> rep1sep(expr, ",") <~ "}" ^^ (_ => Concatenation(_))
         | exprReductionNegation
     def exprReductionNegation: Parser[Expr] =
-        "~" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.Complement, _))
-    | "~" "&" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceAnd, _))
-    | "~" "|" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceOr, _))
-    | "~" "^" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceXor, _))
-
-    
+        "~" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.Complement, _))     |
+        "~" ~ "&" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceAnd, _))  | 
+        "~" ~ "|" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceOr, _))   |
+        "~" ~ "^" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceXor, _))
+   
     
         
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
