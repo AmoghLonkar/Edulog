@@ -218,9 +218,13 @@ object EdulogParser extends StandardTokenParsers {
         | exprReductionNegation
     def exprReductionNegation: Parser[Expr] =
         "~" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.Complement, _))
-        | // TODO
+    | "~" "&" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceAnd, _))
+    | "~" "|" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceOr, _))
+    | "~" "^" ~> expr ^^^ (_ => UnaryOp(UnaryOpType.ReduceXor, _))
 
     
+    
+        
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
     //def topLevel: Parser[_] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}"
     
