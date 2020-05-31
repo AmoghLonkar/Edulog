@@ -11,6 +11,8 @@ object SimpleTester extends App {
 
             out2 = out1 & out3 == {net1, net6} + 'd98
             
+            out6 = ({a, b, c}) sext 8
+            
         }
     
         """

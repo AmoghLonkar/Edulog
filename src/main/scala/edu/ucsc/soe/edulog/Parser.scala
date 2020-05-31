@@ -88,7 +88,7 @@ object EdulogParser extends StandardTokenParsers {
     }
     override val lexical = new EdulogLexical
 
-    lexical.reserved += ("module", "register", "mux")
+    lexical.reserved += ("module", "register", "mux", "sext", "zext", "rep")
     lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~")
     
     def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
