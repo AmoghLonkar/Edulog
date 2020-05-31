@@ -190,7 +190,7 @@ object EdulogParser extends StandardTokenParsers {
             | "<" ^^^ { (a, b) => BinaryOp(BinaryOpType.LessThan, a, b) }
             | "<=" ^^^ { (a, b) => BinaryOp(BinaryOpType.LessThanOrEquals, a, b) }
         )
-    def exprShift: Parser[Expr]] =
+    def exprShift: Parser[Expr] =
         exprAddSub * (
             "<<" ^^^ { (a, b) => BinaryOp(BinaryOpType.ShiftLeft, a, b) }
             | ">>" ^^ { (a, b) => BinaryOp(BinaryOpType.ShiftRight, a, b) }
