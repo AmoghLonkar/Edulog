@@ -9,7 +9,7 @@ object SimpleTester extends App {
             reg1[5] = register (in1)
             
 
-            out2 = out1 & out3
+            out2 = out1 & out3 == {net1, net6} + 'd98
             
         }
     

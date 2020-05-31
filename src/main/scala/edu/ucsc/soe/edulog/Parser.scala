@@ -89,7 +89,7 @@ object EdulogParser extends StandardTokenParsers {
     override val lexical = new EdulogLexical
 
     lexical.reserved += ("module", "register", "mux")
-    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "and", "or")
+    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~")
     
     def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
@@ -164,10 +164,12 @@ object EdulogParser extends StandardTokenParsers {
     def exprLogicalAnd: Parser[Expr] = exprBitwiseOr * ("&&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalAnd, a, b) } )
     def exprBitwiseOr: Parser[Expr] = exprBitwiseXor * ("|" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseOr, a, b) } )
     def exprBitwiseXor: Parser[Expr] =
-        exprEquality * (
+        exprBitwiseAnd * (
             "^" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseXor, a, b) }
-            | "~^" ^^^ { (a: Expr, b: Expr) => UnaryOp(UnaryOpType.Complement, BinaryOp(BinaryOpType.BitwiseXor, a, b)) } ) // don't have XNOR in FIRRTL
-       // )
+            | "~^" ^^^ { (a: Expr, b: Expr) => UnaryOp(UnaryOpType.Complement, BinaryOp(BinaryOpType.BitwiseXor, a, b)) } // don't have XNOR in FIRRTL
+        ) 
+    def exprBitwiseAnd: Parser[Expr] =
+        exprEquality * ("&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseAnd, a, b) } )
     def exprEquality: Parser[Expr] =
         exprInequality * (
             "==" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Equals, a, b) }
@@ -205,7 +207,7 @@ object EdulogParser extends StandardTokenParsers {
         }
     def exprConcat: Parser[Expr] =
         "{" ~> rep1sep(expr, ",") <~ "}" ^^ { 
-            case el => Concatenation(el)
+            case el => Concatenation(el) // doesn't like the ^^^ form here if you have a list not sure why
         } | exprReductionNegation
     def exprReductionNegation: Parser[Expr] =
         "~" ~> opt("&" | "|" | "^") ~ expr ^^ {
@@ -213,13 +215,11 @@ object EdulogParser extends StandardTokenParsers {
             case Some("&") ~ e => UnaryOp(UnaryOpType.ReduceAnd, e)
             case Some("|") ~ e => UnaryOp(UnaryOpType.ReduceOr, e)
             case Some("^") ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
-        }
-        /*
-        "~" ~> expr ^^^ { (e: Expr) => UnaryOp(UnaryOpType.Complement, e) }
-        | "~" ~ "&" ~> expr ^^^ { (e: Expr) => UnaryOp(UnaryOpType.ReduceAnd, e) }
-        | "~" ~ "|" ~> expr ^^^ { (e: Expr) => UnaryOp(UnaryOpType.ReduceOr, e) } 
-        | "~" ~ "^" ~> expr ^^^ { (e: Expr) => UnaryOp(UnaryOpType.ReduceXor, e) }
-    */
+        } | exprParens
+    def exprParens: Parser[Expr] =
+        "(" ~> expr <~ ")" | // nothing special to do with this expr, just returns it by default
+        basedNumericLit |
+        net
         
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
     //def topLevel: Parser[_] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}"
