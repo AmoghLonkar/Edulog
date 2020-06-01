@@ -126,9 +126,9 @@ object EdulogParser extends StandardTokenParsers {
     def moduleCall: Parser[ModuleCall] = ident ~ "(" ~ repsep(net, ",") ~ ")" ^^ {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
     }
-    
+   
     def mux: Parser[Mux] = "mux" ~ "(" ~ rep1(expr) ~ "," ~ repsep(expr, ",") ~ ")" ^^ {
-        case muxName ~ "(" ~ sel ~ inputs ~ ")" => Mux(sel, inputs)
+      case muxName ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
     }
     
     
