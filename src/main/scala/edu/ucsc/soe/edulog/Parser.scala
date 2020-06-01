@@ -117,7 +117,7 @@ object EdulogParser extends StandardTokenParsers {
         case destNets ~ "=" ~ rhs => Assignment(destNets, rhs)
     }
     
-    def assignmentRHS: Parser[AssignmentRHS] = registerCall | moduleCall | expr
+    def assignmentRHS: Parser[AssignmentRHS] = registerCall | moduleCall | expr | mux
     
     def registerCall: Parser[RegisterCall] = "register" ~ "(" ~> net <~ ")" ^^ {
         case theNet => RegisterCall(theNet)
@@ -127,8 +127,8 @@ object EdulogParser extends StandardTokenParsers {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
     }
    
-    def mux: Parser[Mux] = "mux" ~ "(" ~ rep1(expr) ~ "," ~ repsep(expr, ",") ~ ")" ^^ {
-      case muxName ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
+    def mux: Parser[Mux] = "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
+      case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
     }
     
     
@@ -137,21 +137,6 @@ object EdulogParser extends StandardTokenParsers {
         case _ ~ "|" ~ e => UnaryOp(UnaryOpType.ReduceOr, e)
         case _ ~ "^" ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
     }
-   
-    
-    /*
-    //def mux: Parser[Mux] = "mux" ~ "(" ~ expr ~ ")" ~ "{" ~ rep1(muxCase) ~ "}" ^^ {
-    def mux: Parser[Mux] = "mux" ~ "(" ~ rep1(expr) ~ "," ~ repsep(expr, ",") ~ ")" ^^ {
-        case _ ~ _ ~ sel ~ _ ~ _ ~ cases ~ _ => {
-            // TODO: check that all cases are handled and that the cases array has the correct width
-            Mux(sel, cases.sortWith(_._1 < _._1).map(_ => _._2))  // muxCase returns a tuple, sort by first element
-        }
-    }
-    
-    def muxCase: Parser[Tuple2[Integer, Expr]] = basedNumericLit ~ ":" ~ expr ^^ {
-        case n ~ ":" ~ e => (n, e)
-    }
-    */
 
     def basedHexLit: Parser[NumericLiteral] = elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ {
         case c => NumericLiteral(Integer.parseInt(c.chars, 16))
