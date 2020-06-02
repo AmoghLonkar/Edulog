@@ -13,15 +13,13 @@ case class ModuleDeclaration(name: String, inputs: List[Net], outputs: List[Net]
 case class Assignment(left: List[Net], right: AssignmentRHS) extends ASTNode
 
 sealed trait AssignmentRHS extends ASTNode
-case class RegisterCall(in: Net) extends AssignmentRHS
+sealed trait Expr extends AssignmentRHS
+case class RegisterCall(in: Expr) extends AssignmentRHS
 case class ModuleCall(name: String, inputs: List[Net]) extends AssignmentRHS
-sealed abstract class Expr(width: Integer = null) extends AssignmentRHS
-
-case class Mux(selector: Expr, inputs: List[Expr]) extends Expr
+case class Mux(selector: Expr, inputs: List[Expr]) extends AssignmentRHS
 
 object BinaryOpType extends Enumeration {
     type BinaryOpType = Value
-    // TODO: the stuff inside the Value() was part of an old idea and won't be used anymore, make it look like the enum for UnaryOp
     val BitwiseAnd, BitwiseOr, BitwiseXor, 
         Addition, Subtraction, Multiplication, Division, Modulus, 
         LessThan, LessThanOrEquals, GreaterThan, GreaterThanOrEquals,
@@ -94,7 +92,10 @@ object EdulogParser extends StandardTokenParsers {
     def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
             // TODO: check if outputs, inputs are declared correctly
-            ModuleDeclaration(modName, inputs, outputs, assignments)
+            assignments match {
+                case Some(asgs) => ModuleDeclaration(modName, inputs, outputs, asgs)
+                case None => throw new Exception("useless empty module")
+            }
         }
         case _ => throw new Exception("very bad")
     }
