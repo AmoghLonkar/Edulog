@@ -60,8 +60,12 @@ object EdulogVisitor {
     
     private def visitModuleDeclaration(in: ModuleDeclaration): ir.DefModule = {
         // map the nets to input and output ports, respectively
-        // TODO: add the global clock and reset here
-        val ports = in.inputs.map(netToPort(ir.Input, _)) ++ in.outputs.map(netToPort(ir.Output, _))
+        val ports = 
+            Seq(
+                ir.Port(ir.NoInfo, "clock", ir.Input, ir.ClockType),
+                ir.Port(ir.NoInfo, "reset", ir.Input, ir.ResetType)
+            ) ++
+            in.inputs.map(netToPort(ir.Input, _)) ++ in.outputs.map(netToPort(ir.Output, _))
         
         ir.Module(visitInfo(in), in.name, ports, visitModuleBody(in.body))
     }
@@ -91,7 +95,12 @@ object EdulogVisitor {
                 ir.Block(stuff)
             }
             //case ModuleCall =>
-            //case Expr =>
+            case Expr => {
+                assert(in.left.length == 1) // can only have one thing to assign to
+                var destNet = in.left.head
+                
+                ir.Connect(visitInfo(in), )
+            }
             //case Mux =>
         }
     }
@@ -122,7 +131,7 @@ object EdulogVisitor {
             //case UnaryOp =>
             case Net(name, high, low) => {
                 var theRef = ir.Reference(name, ir.SIntType(ir.UnknownWidth))
-                if (high == low == null) {
+                if (high == null && low == null) {
                     // take the whole net, whose width is unknown for now
                     theRef
                 } else {

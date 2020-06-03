@@ -158,64 +158,75 @@ object EdulogParser extends StandardTokenParsers {
     def exprLogicalOr: Parser[Expr]  = positioned { exprLogicalAnd * ("||" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalOr, a, b) }) }
     def exprLogicalAnd: Parser[Expr] = positioned { exprBitwiseOr * ("&&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalAnd, a, b) } ) }
     def exprBitwiseOr: Parser[Expr]  = positioned { exprBitwiseXor * ("|" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseOr, a, b) } ) }
-    def exprBitwiseXor: Parser[Expr] =
+    def exprBitwiseXor: Parser[Expr] = positioned {
         exprBitwiseAnd * (
             "^" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseXor, a, b) }
             | "~^" ^^^ { (a: Expr, b: Expr) => UnaryOp(UnaryOpType.Complement, BinaryOp(BinaryOpType.BitwiseXor, a, b)) } // don't have XNOR in FIRRTL
-        ) 
-    def exprBitwiseAnd: Parser[Expr] =
+        )
+    }
+    def exprBitwiseAnd: Parser[Expr] = positioned {
         exprEquality * ("&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseAnd, a, b) } )
-    def exprEquality: Parser[Expr] =
+    }
+    def exprEquality: Parser[Expr] = positioned {
         exprInequality * (
             "==" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Equals, a, b) }
             | "!=" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.NotEquals, a, b) }
         )
-    def exprInequality: Parser[Expr] =
+    }
+    def exprInequality: Parser[Expr] = positioned {
         exprShift * (
             ">" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.GreaterThan, a, b) }
             | ">=" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.GreaterThanOrEquals, a, b) }
             | "<" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LessThan, a, b) }
             | "<=" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LessThanOrEquals, a, b) }
         )
-    def exprShift: Parser[Expr] =
+    }
+    def exprShift: Parser[Expr] = positioned {
         exprAddSub * (
             "<<" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.ShiftLeft, a, b) }
             | ">>" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.ShiftRight, a, b) }
         )
-    def exprAddSub: Parser[Expr] =
+    }
+    def exprAddSub: Parser[Expr] = positioned {
         exprMulDiv * (
             "+" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Addition, a, b) }
             | "-" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Subtraction, a, b) }
         )
-    def exprMulDiv: Parser[Expr] =
+    }
+    def exprMulDiv: Parser[Expr] = positioned {
         exprReplication * (
             "*" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Multiplication, a, b) }
             | "/" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Division, a, b) }
             | "%" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.Modulus, a, b) }
         )
-    def exprReplication: Parser[Expr] = 
+    }
+    def exprReplication: Parser[Expr] = positioned {
         exprConcat ~ opt(("sext" | "zext" | "rep") ~ numericLit) ^^ {
             case e ~ None => e
             case e ~ Some("sext" ~ n) => SignExtension(e, n.toInt)
             case e ~ Some("zext" ~ n) => ZeroExtension(e, n.toInt)
             case e ~ Some("rep" ~ n)  => Replication(e, n.toInt)
         }
-    def exprConcat: Parser[Expr] =
+    }
+    def exprConcat: Parser[Expr] = positioned {
         "{" ~> rep1sep(expr, ",") <~ "}" ^^ { 
             case el => Concatenation(el) // doesn't like the ^^^ form here if you have a list not sure why
         } | exprReductionNegation
-    def exprReductionNegation: Parser[Expr] =
+    }
+    def exprReductionNegation: Parser[Expr] = positioned {
         "~" ~> opt("&" | "|" | "^") ~ expr ^^ {
             case None ~ e => UnaryOp(UnaryOpType.Complement, e)
             case Some("&") ~ e => UnaryOp(UnaryOpType.ReduceAnd, e)
             case Some("|") ~ e => UnaryOp(UnaryOpType.ReduceOr, e)
             case Some("^") ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
         } | exprParens
-    def exprParens: Parser[Expr] =
+    }
+    def exprParens: Parser[Expr] = positioned {
         "(" ~> expr <~ ")" | // nothing special to do with this expr, just returns it by default
         basedNumericLit |
         net
-        
+    }
+    
     //def topLevel: Parser[ModuleDeclaration]] = rep(moduleDeclaration)
     //def topLevel: Parser[_] = rep1sep(net, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(net, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}"
     

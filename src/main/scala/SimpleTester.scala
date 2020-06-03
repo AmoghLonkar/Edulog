@@ -6,7 +6,7 @@ object SimpleTester extends App {
     val res = EdulogParser.parseAll(
         """
         out1[5], out2[4] = module Bla (in1[5], in2[8]) {
-            out1 = register (in1 & in2)
+            out1 = register (in1a & in2a & in1b & in2b | in1c)
             
 
             //out2 = out1 & out3 == {net1, net6} + 'd98
