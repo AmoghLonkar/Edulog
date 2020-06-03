@@ -1,6 +1,8 @@
 package edu.ucsc.soe.edulog
 // based off https://github.com/freechipsproject/firrtl/blob/master/src/main/scala/firrtl/Visitor.scala
 
+// maybe use: https://github.com/freechipsproject/firrtl/wiki/Common-Pass-Idioms to nest things instead
+
 import firrtl._
 
 object EdulogVisitor {

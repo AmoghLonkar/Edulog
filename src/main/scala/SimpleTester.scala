@@ -6,12 +6,12 @@ object SimpleTester extends App {
     val res = EdulogParser.parseAll(
         """
         out1[5], out2[4] = module Bla (in1[5], in2[8]) {
-            reg1[5] = register (in1)
+            out1 = register (in1 & in2)
             
 
-            out2 = out1 & out3 == {net1, net6} + 'd98
+            //out2 = out1 & out3 == {net1, net6} + 'd98
             
-            out6 = ({a, b, c}) sext 8
+            //out6 = ({a, b, c}) sext 8
             
         }
     
@@ -19,4 +19,8 @@ object SimpleTester extends App {
     )
     
     println(res)
+    
+    val resCircuit = EdulogVisitor.visit(res.get)
+    
+    println(resCircuit.serialize)
 }

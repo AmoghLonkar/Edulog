@@ -89,7 +89,7 @@ object EdulogParser extends StandardTokenParsers {
     lexical.reserved += ("module", "register", "mux", "sext", "zext", "rep", "clock", "reset")
     lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~")
     
-    def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
+    def moduleDeclaration: Parser[ModuleDeclaration] = positioned { rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
             // TODO: check if outputs, inputs are declared correctly
             if (assignments.length == 0) {
@@ -99,65 +99,65 @@ object EdulogParser extends StandardTokenParsers {
             ModuleDeclaration(modName, inputs, outputs, assignments)
         }
         case _ => throw new Exception("very bad")
-    }
+    }}
     
     /**
      * Nets can take the form of ident, ident[n], ident[hi:lo]
      */
-    def netHiLo: Parser[Net] = ident ~ "[" ~ numericLit ~ ":" ~ numericLit ~ "]" ^^ {
+    def netHiLo: Parser[Net] = positioned { ident ~ "[" ~ numericLit ~ ":" ~ numericLit ~ "]" ^^ {
         case netName ~ "[" ~ hi ~ ":" ~ lo ~ "]" => Net(netName, hi.toInt, lo.toInt)
-    }
-    def netOne: Parser[Net] = ident ~ "[" ~ numericLit ~ "]" ^^ {
+    }}
+    def netOne: Parser[Net] = positioned { ident ~ "[" ~ numericLit ~ "]" ^^ {
         case netName ~ "[" ~ n ~ "]" => Net(netName, n.toInt, n.toInt)
-    }
-    def netNameOnly: Parser[Net] = ident ^^ {
+    }}
+    def netNameOnly: Parser[Net] = positioned { ident ^^ {
         case netName => Net(netName, null, null)
-    }
-    def net: Parser[Net] = netHiLo ||| netOne ||| netNameOnly
+    }}
+    def net: Parser[Net] = positioned { netHiLo ||| netOne ||| netNameOnly }
 
-    def assignment: Parser[Assignment] = rep1sep(net, ",") ~ "=" ~ assignmentRHS ^^ {
+    def assignment: Parser[Assignment] = positioned { rep1sep(net, ",") ~ "=" ~ assignmentRHS ^^ {
         case destNets ~ "=" ~ rhs => Assignment(destNets, rhs)
-    }
+    }}
     
-    def assignmentRHS: Parser[AssignmentRHS] = registerCall | moduleCall | expr | mux
+    def assignmentRHS: Parser[AssignmentRHS] = positioned { registerCall | moduleCall | expr | mux }
     
-    def registerCall: Parser[RegisterCall] = "register" ~ "(" ~> net <~ ")" ^^ {
-        case theNet => RegisterCall(theNet)
-    }
+    def registerCall: Parser[RegisterCall] = positioned { "register" ~ "(" ~> expr <~ ")" ^^ {
+        case e => RegisterCall(e)
+    }}
     
-    def moduleCall: Parser[ModuleCall] = ident ~ "(" ~ repsep(net, ",") ~ ")" ^^ {
+    def moduleCall: Parser[ModuleCall] = positioned { ident ~ "(" ~ repsep(net, ",") ~ ")" ^^ {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
-    }
+    }}
    
-    def mux: Parser[Mux] = "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
+    def mux: Parser[Mux] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
       case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
-    }
+    }}
     
     
-    def bitwiseReduction: Parser[UnaryOp] = "'" ~ ("&" | "|" | "^") ~ expr ^^ {
+    def bitwiseReduction: Parser[UnaryOp] = positioned { "'" ~ ("&" | "|" | "^") ~ expr ^^ {
         case _ ~ "&" ~ e => UnaryOp(UnaryOpType.ReduceAnd, e)
         case _ ~ "|" ~ e => UnaryOp(UnaryOpType.ReduceOr, e)
         case _ ~ "^" ~ e => UnaryOp(UnaryOpType.ReduceXor, e)
-    }
+    }}
 
-    def basedHexLit: Parser[NumericLiteral] = elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ {
+    def basedHexLit: Parser[NumericLiteral] = positioned { elem("hex lit", _.isInstanceOf[lexical.HexLit]) ^^ {
         case c => NumericLiteral(Integer.parseInt(c.chars, 16))
-    }
-    def basedBinLit: Parser[NumericLiteral] = elem("bin lit", _.isInstanceOf[lexical.BinLit]) ^^ {
+    }}
+    def basedBinLit: Parser[NumericLiteral] = positioned { elem("bin lit", _.isInstanceOf[lexical.BinLit]) ^^ {
         case c => NumericLiteral(Integer.parseInt(c.chars, 2))
-    }
-    def basedDecLit: Parser[NumericLiteral] = elem("dec lit", _.isInstanceOf[lexical.DecLit]) ^^ {
+    }}
+    def basedDecLit: Parser[NumericLiteral] = positioned { elem("dec lit", _.isInstanceOf[lexical.DecLit]) ^^ {
         case c => NumericLiteral(Integer.parseInt(c.chars, 10))
-    }
-    def basedNumericLit: Parser[NumericLiteral] = basedHexLit | basedBinLit | basedDecLit
+    }}
+    def basedNumericLit: Parser[NumericLiteral] = positioned { basedHexLit | basedBinLit | basedDecLit }
 
-    def expr: Parser[Expr] = exprLogicalOr
+    def expr: Parser[Expr] = positioned { exprLogicalOr }
 
     // here's how this (seems) to work: the * means interleave two of the thing on the left with the parser on the right
     // and the parser on the right is a partial thing? the ^^^ is a shorthand for a converter
-    def exprLogicalOr: Parser[Expr] = exprLogicalAnd * ("||" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalOr, a, b) })
-    def exprLogicalAnd: Parser[Expr] = exprBitwiseOr * ("&&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalAnd, a, b) } )
-    def exprBitwiseOr: Parser[Expr] = exprBitwiseXor * ("|" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseOr, a, b) } )
+    def exprLogicalOr: Parser[Expr]  = positioned { exprLogicalAnd * ("||" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalOr, a, b) }) }
+    def exprLogicalAnd: Parser[Expr] = positioned { exprBitwiseOr * ("&&" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.LogicalAnd, a, b) } ) }
+    def exprBitwiseOr: Parser[Expr]  = positioned { exprBitwiseXor * ("|" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseOr, a, b) } ) }
     def exprBitwiseXor: Parser[Expr] =
         exprBitwiseAnd * (
             "^" ^^^ { (a: Expr, b: Expr) => BinaryOp(BinaryOpType.BitwiseXor, a, b) }
@@ -222,7 +222,7 @@ object EdulogParser extends StandardTokenParsers {
     /**
      * Parser main function
      */
-    def parseAll(in: String): ParseResult[_] = phrase(moduleDeclaration)(new lexical.Scanner(in))
+    def parseAll(in: String): ParseResult[List[ModuleDeclaration]] = phrase(rep1(moduleDeclaration))(new lexical.Scanner(in))
     //def parseAll(in: String): ParseResult[List[Net]] = phrase(topLevel)(new lexical.Scanner(in))
     //def parseAll[T](p: Parser[T], in: String): ParseResult[T] = phrase(p)(new lexical.Scanner(in))
 }
