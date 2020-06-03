@@ -17,7 +17,7 @@ scalaVersion := "2.12.4"
 //libraryDependencies += "org.json4s" %% "json4s-native" % "3.5.3"
 
 libraryDependencies += "org.scala-lang.modules"  %% "scala-parser-combinators" % "1.1.2"
-libraryDependencies += "edu.berkeley.cs" %% "firrtl" % "1.1.3"
+libraryDependencies += "edu.berkeley.cs" %% "firrtl" % "1.3.0"
 
 
 // Assembly

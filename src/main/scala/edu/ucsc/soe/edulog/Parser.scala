@@ -38,7 +38,7 @@ case class UnaryOp(op: UnaryOpType.Value, operand: Expr) extends Expr
 
 case class Net(name: String, high: Integer = null, low: Integer = null) extends Expr
 
-case class NumericLiteral(value: Int) extends Expr // note: width is in Expr
+case class NumericLiteral(value: BigInt) extends Expr // note: width is in Expr
 object NumericLiteralBase extends Enumeration {
     type NumericLiteralBase = Value
     val Decimal, Hexadecimal, Binary = Value
@@ -86,16 +86,17 @@ object EdulogParser extends StandardTokenParsers {
     }
     override val lexical = new EdulogLexical
 
-    lexical.reserved += ("module", "register", "mux", "sext", "zext", "rep")
+    lexical.reserved += ("module", "register", "mux", "sext", "zext", "rep", "clock", "reset")
     lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~")
     
     def moduleDeclaration: Parser[ModuleDeclaration] = rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
             // TODO: check if outputs, inputs are declared correctly
-            assignments match {
-                case Some(asgs) => ModuleDeclaration(modName, inputs, outputs, asgs)
-                case None => throw new Exception("useless empty module")
+            if (assignments.length == 0) {
+                throw new Exception("useless empty module")
             }
+            
+            ModuleDeclaration(modName, inputs, outputs, assignments)
         }
         case _ => throw new Exception("very bad")
     }
