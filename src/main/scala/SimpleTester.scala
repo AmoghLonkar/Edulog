@@ -22,5 +22,11 @@ object SimpleTester extends App {
     
     val resCircuit = EdulogVisitor.visit(res.get)
     
+    println("before transform:")
     println(resCircuit.serialize)
+    
+    val resCircuit2 = Splitter.run(resCircuit)
+    
+    println("after transform:")
+    println(resCircuit2.serialize)
 }

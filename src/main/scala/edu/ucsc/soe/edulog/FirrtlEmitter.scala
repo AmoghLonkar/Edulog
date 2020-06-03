@@ -6,16 +6,6 @@ package edu.ucsc.soe.edulog
 import firrtl._
 
 object EdulogVisitor {
-    private var uniqueIdValue = 0
-    
-    /**
-     * Get a unique ID, mainly useful for names
-     */
-    private def uniqueId(): String = {
-        uniqueIdValue += 1
-        "_unique" + uniqueIdValue
-    }
-    
     /**
      * Creates some annotations for the FIRRTL that shows where the stuff originated.
      * TODO: add the filename into here, need to figure out how to get that
@@ -88,19 +78,19 @@ object EdulogVisitor {
                 var destNet = in.left.head
                 
                 var regType = ir.SIntType(ir.UnknownWidth)
-                var stuff = collection.mutable.ArrayBuffer[ir.Statement]()
-                stuff += ir.DefRegister(visitInfo(destNet), destNet.name, regType, clock, reset, registerInit)
-                
-                stuff += ir.Connect(visitInfo(in), ir.Reference(destNet.name, regType), visitExpr(inside, stuff)) // connect to reg
-                ir.Block(stuff)
+                ir.Block(Seq(
+                    ir.DefRegister(visitInfo(destNet), destNet.name, regType, clock, reset, registerInit),
+                    ir.Connect(visitInfo(in), ir.Reference(destNet.name, regType), visitExpr(inside))
+                ))
             }
             //case ModuleCall =>
+            /*
             case Expr => {
                 assert(in.left.length == 1) // can only have one thing to assign to
                 var destNet = in.left.head
                 
                 ir.Connect(visitInfo(in), )
-            }
+            }*/
             //case Mux =>
         }
     }
@@ -110,7 +100,7 @@ object EdulogVisitor {
      * It will return the result of the expression (e.g. a DoPrim)
      * If there are intermediate steps required, those will be prepended to [[extraSteps]], which must be initialized
      */
-    private def visitExpr(in: Expr, extraSteps: collection.mutable.Buffer[ir.Statement]): ir.Expression = {
+    private def visitExpr(in: Expr): ir.Expression = {
         in match {
             case BinaryOp(op, left, right) => {
                 // convert Edulog op to FIRRTL op
@@ -121,12 +111,8 @@ object EdulogVisitor {
                     // TODO: do the rest
                 }
                 
-                // do the left or right need to be done?
-                var newLeft = convertExprSideToGround(left, extraSteps)
-                var newRight = convertExprSideToGround(right, extraSteps)
-                
                 // return the op
-                ir.DoPrim(firrtlOp, Seq(newLeft, newRight), Seq(), ir.SIntType(ir.UnknownWidth))
+                ir.DoPrim(firrtlOp, Seq(left, right) map visitExpr, Seq(), ir.SIntType(ir.UnknownWidth))
             }
             //case UnaryOp =>
             case Net(name, high, low) => {
@@ -136,10 +122,7 @@ object EdulogVisitor {
                     theRef
                 } else {
                     // extract the bits we want
-                    var nodeName = uniqueId()
-                    var thing = ir.DoPrim(PrimOps.Bits, Seq(theRef), Seq(BigInt(high), BigInt(low)), ir.SIntType(ir.UnknownWidth))
-                    extraSteps += ir.DefNode(visitInfo(in), nodeName, thing)
-                    ir.Reference(nodeName, ir.SIntType(ir.UnknownWidth))
+                    ir.DoPrim(PrimOps.Bits, Seq(theRef), Seq(BigInt(high), BigInt(low)), ir.SIntType(ir.UnknownWidth))
                 }
             }
             case NumericLiteral(v) => ir.SIntLiteral(v, ir.UnknownWidth)
@@ -147,21 +130,6 @@ object EdulogVisitor {
             //case ZeroExtension =>
             //case Replication =>
             //case Concatenation =>
-        }
-    }
-    
-    /**
-     * If the input is not something that can be used in a primitive op then convert to what we can use
-     */
-    private def convertExprSideToGround(in: Expr, extraSteps: collection.mutable.Buffer[ir.Statement]): ir.Expression = {
-        if (!isTerminal(in)) {
-            var res = visitExpr(in, extraSteps)
-            var nodeName = uniqueId()
-            extraSteps += ir.DefNode(visitInfo(in), nodeName, res)
-            ir.Reference(nodeName, ir.SIntType(ir.UnknownWidth))
-        } else {
-            // nothing to do, this is a Net or a NumericLiteral so just call the method to convert that
-            visitExpr(in, extraSteps)
         }
     }
     
