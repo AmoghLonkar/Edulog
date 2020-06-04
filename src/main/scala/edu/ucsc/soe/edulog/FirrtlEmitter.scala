@@ -106,13 +106,36 @@ object EdulogVisitor {
                     case BinaryOpType.BitwiseAnd => PrimOps.And
                     case BinaryOpType.BitwiseOr => PrimOps.Or
                     case BinaryOpType.BitwiseXor => PrimOps.Xor
-                    // TODO: do the rest
+                    case BinaryOpType.Addition => PrimOps.Add
+                    case BinaryOpType.Subtraction => PrimOps.Sub
+                    case BinaryOpType.Multiplication => PrimOps.Mul
+                    case BinaryOpType.Division => PrimOps.Div
+                    case BinaryOpType.Modulus => PrimOps.Rem
+                    case BinaryOpType.LessThan => PrimOps.Lt
+                    case BinaryOpType.LessThanOrEquals => PrimOps.Leq
+                    case BinaryOpType.GreaterThan => PrimOps.Gt
+                    case BinaryOpType.GreaterThanOrEquals => PrimOps.Geq
+                    case BinaryOpType.Equals => PrimOps.Eq
+                    case BinaryOpType.NotEquals => PrimOps.Neq
+                    case BinaryOpType.ShiftLeft => PrimOps.Dshl
+                    case BinaryOpType.ShiftRight => PrimOps.Dshr
+                    case BinaryOpType.LogicalAnd => PrimOps.And
+                    case BinaryOpType.LogicalOr => PrimOps.Or
                 }
-                
+
                 // return the op
                 ir.DoPrim(firrtlOp, Seq(left, right) map visitExpr, Seq(), ir.UIntType(ir.UnknownWidth))
             }
-            //case UnaryOp =>
+            case UnaryOp(op, operand) => {
+              var firrtlOp = op match {
+                case UnaryOpType.Complement => PrimOps.Neg   
+                case UnaryOpType.ReduceAnd => PrimOps.Andr   
+                case UnaryOpType.ReduceOr => PrimOps.Orr   
+                case UnaryOpType.ReduceXor => PrimOps.Xorr   
+                }
+
+                ir.DoPrim(firrtlOp, Seq(operand) map visitExpr, Seq(), ir.UIntType(ir.UnknownWidth))
+            }
             case Net(name, high, low) => {
                 var theRef = ir.Reference(name, ir.UIntType(ir.UnknownWidth))
                 if (high == null && low == null) {
@@ -123,11 +146,13 @@ object EdulogVisitor {
                     ir.DoPrim(PrimOps.Bits, Seq(theRef), Seq(BigInt(high), BigInt(low)), ir.UIntType(ir.UnknownWidth))
                 }
             }
+
             case NumericLiteral(v) => ir.UIntLiteral(v, ir.UnknownWidth)
-            //case SignExtension =>
-            //case ZeroExtension =>
-            //case Replication =>
-            //case Concatenation =>
+            
+            case SignExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
+            case ZeroExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
+            case Replication(operand, count) => ir.DoPrim(PrimOps.Cat, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
+            case Concatenation(operands) => ir.DoPrim(PrimOps.Cat, Seq(), Seq(), ir.UIntType(ir.UnknownWidth))
         }
     }
     
@@ -135,5 +160,5 @@ object EdulogVisitor {
      * Check if the given expression is terminal (is that the right word?)
      * Basically, can it be used as a "ground type" in FIRRTL expressions.
      */
-    private def isTerminal(e: Expr): Boolean = { e.isInstanceOf[Net] || e.isInstanceOf[NumericLiteral] }
+    private def isTerminal(e: Expr): Boolean = e.isInstanceOf[Net] || e.isInstanceOf[NumericLiteral]
 }
