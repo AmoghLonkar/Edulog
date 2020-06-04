@@ -1,4 +1,6 @@
 import edu.ucsc.soe.edulog._
+import firrtl.{CircuitState, Transform, UnknownForm}
+import firrtl.passes._
 
 object SimpleTester extends App {
     //val p = new EdulogParser()
@@ -6,7 +8,7 @@ object SimpleTester extends App {
     val res = EdulogParser.parseAll(
         """
         out1[5], out2[4] = module Bla (in1[5], in2[8]) {
-            out1 = register (in1a & in2a & in1b & in2b | in1c)
+            out1 = register (in1 & in2 & in1 & in2 | in1)
             
 
             //out2 = out1 & out3 == {net1, net6} + 'd98
@@ -25,8 +27,32 @@ object SimpleTester extends App {
     println("before transform:")
     println(resCircuit.serialize)
     
-    val resCircuit2 = Splitter.run(resCircuit)
+    // this part based on https://github.com/freechipsproject/firrtl/blob/master/src/test/scala/firrtlTests/fixed/FixedTypeInferenceSpec.scala
+    val passes = Seq[Transform](
+        Splitter,
+        ToWorkingIR,
+        InferTypes,
+        CheckTypes,
+        ResolveFlows,
+        CheckFlows,
+        new InferWidths,
+        CheckWidths)
     
-    println("after transform:")
-    println(resCircuit2.serialize)
+    val c = passes.foldLeft(CircuitState(resCircuit, UnknownForm)) {
+        (c: CircuitState, t: Transform) => {
+            println("=== doing " + t.name + " ===")
+            var res1 = t.runTransform(c)
+            println("result:")
+            println(res1.circuit.serialize)
+            res1
+        }
+    }
+    
+    println("final result:")
+    println(c.circuit.serialize)
+    
+    
+    //val resCircuit3 = firrtl.passes.InferWidths.run(resCircuit2)
+    //println("after bitwidth inference:")
+    //println(resCircuit3.serialize)
 }

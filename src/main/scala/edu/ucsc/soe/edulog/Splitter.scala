@@ -10,7 +10,7 @@ import firrtl.passes.Pass
 import firrtl._
 
 object Splitter extends Pass {
-    override def name = "Splitter!"
+    override def name = "Splitter"
     
     /** Run splitM on every module **/
     def run(c: Circuit): Circuit = c.copy(modules = c.modules map(splitM(_)))
