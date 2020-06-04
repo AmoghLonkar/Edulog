@@ -108,13 +108,36 @@ object EdulogVisitor {
                     case BinaryOpType.BitwiseAnd => PrimOps.And
                     case BinaryOpType.BitwiseOr => PrimOps.Or
                     case BinaryOpType.BitwiseXor => PrimOps.Xor
-                    // TODO: do the rest
+                    case BinaryOpType.Addition => PrimOps.Add
+                    case BinaryOpType.Subtraction => PrimOps.Sub
+                    case BinaryOpType.Multiplication => PrimOps.Mul
+                    case BinaryOpType.Division => PrimOps.Div
+                    case BinaryOpType.Modulus => PrimOps.Rem
+                    case BinaryOpType.LessThan => PrimOps.Lt
+                    case BinaryOpType.LessThanOrEquals => PrimOps.Leq
+                    case BinaryOpType.GreaterThan => PrimOps.Gt
+                    case BinaryOpType.GreaterThanOrEquals => PrimOps.Geq
+                    case BinaryOpType.Equals => PrimOps.Eq
+                    case BinaryOpType.NotEquals => PrimOps.Neq
+                    case BinaryOpType.ShiftLeft => PrimOps.Dshl
+                    case BinaryOpType.ShiftRight => PrimOps.Dshr
+                    case BinaryOpType.LogicalAnd => PrimOps.And
+                    case BinaryOpType.LogicalOr => PrimOps.Or
                 }
-                
+
                 // return the op
                 ir.DoPrim(firrtlOp, Seq(left, right) map visitExpr, Seq(), ir.SIntType(ir.UnknownWidth))
             }
-            //case UnaryOp =>
+            case UnaryOp(op, operand) => {
+              var firrtlOp = op match {
+                case UnaryOpType.Complement => PrimOps.Neg   
+                case UnaryOpType.ReduceAnd => PrimOps.Andr   
+                case UnaryOpType.ReduceOr => PrimOps.Orr   
+                case UnaryOpType.ReduceXor => PrimOps.Xorr   
+                }
+
+                ir.DoPrim(firrtlOp, Seq(operand) map visitExpr, Seq(), ir.SIntType(ir.UnknownWidth))
+            }
             case Net(name, high, low) => {
                 var theRef = ir.Reference(name, ir.SIntType(ir.UnknownWidth))
                 if (high == null && low == null) {
