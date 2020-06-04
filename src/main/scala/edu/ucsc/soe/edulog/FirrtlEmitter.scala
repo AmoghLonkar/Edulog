@@ -150,7 +150,6 @@ object EdulogVisitor {
             }
             case NumericLiteral(v) => ir.SIntLiteral(v, ir.UnknownWidth)
             
-            //TO DO: change type of operand in ir.DoPrim
             case SignExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
             case ZeroExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
             case Replication(operand, count) => ir.DoPrim(PrimOps.Cat, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
