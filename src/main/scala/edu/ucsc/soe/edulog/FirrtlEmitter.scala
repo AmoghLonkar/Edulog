@@ -149,10 +149,12 @@ object EdulogVisitor {
                 }
             }
             case NumericLiteral(v) => ir.SIntLiteral(v, ir.UnknownWidth)
-            //case SignExtension =>
-            //case ZeroExtension =>
-            //case Replication =>
-            //case Concatenation =>
+            
+            //TO DO: change type of operand in ir.DoPrim
+            case SignExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
+            case ZeroExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
+            case Replication(operand, count) => ir.DoPrim(PrimOps.Cat, Seq(visitExpr(operand)), Seq(), ir.SIntType(ir.UnknownWidth))
+            case Concatenation(operands) => ir.DoPrim(PrimOps.Cat, Seq(), Seq(), ir.SIntType(ir.UnknownWidth))
         }
     }
     
