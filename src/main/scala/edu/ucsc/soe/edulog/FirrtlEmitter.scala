@@ -2,6 +2,7 @@ package edu.ucsc.soe.edulog
 // based off https://github.com/freechipsproject/firrtl/blob/master/src/main/scala/firrtl/Visitor.scala
 
 import firrtl._
+import firrtl.ir.Statement
 
 object EdulogVisitor {
     /**
@@ -16,24 +17,38 @@ object EdulogVisitor {
     /**
      * This is the global implied clock.
      */
-    private var clock = ir.Reference("clock", ir.ClockType)
+    private val clock = ir.Reference("clock", ir.ClockType)
     
     /**
      * Global implied reset.
      */
-    private var reset = ir.Reference("reset", ir.ResetType)
+    private val reset = ir.Reference("reset", ir.ResetType)
     
     /**
      * Convenience for the default value of a reg.
      * For now it's always a 0.
      */
-    private var registerInit = ir.UIntLiteral(0, ir.UnknownWidth)
+    private val registerInit = ir.UIntLiteral(0, ir.UnknownWidth)
+
+    /**
+     * This is used to create unique identifiers.
+     */
+    private val moduleNamespace = Namespace()
+
+    /**
+     * Cache of the modules in the design. Filled in by visit() so that we know all module names, their inputs and outputs
+     */
+    private val modules = collection.mutable.HashMap[String, (List[Net], List[Net])]()
     
     /**
      * Main vistor entrypoint.
      */
     def visit(in: List[ModuleDeclaration]): ir.Circuit = {
         // TODO: need to figure out how to get the top level module and make that the name of the Circuit
+        // before going into the circuit, first save the modules
+        for (m <- in) modules(m.name) = (m.inputs, m.outputs)
+
+        // dive into the AST
         ir.Circuit(ir.NoInfo, in.map(visitModuleDeclaration), "EdulogCircuit")
     }
     
@@ -55,40 +70,86 @@ object EdulogVisitor {
             ) ++
             in.inputs.map(netToPort(ir.Input, _)) ++ in.outputs.map(netToPort(ir.Output, _))
         
-        ir.Module(visitInfo(in), in.name, ports, visitModuleBody(in.body))
+        ir.Module(visitInfo(in), in.name, ports, visitModuleBody(in.body, in.name))
     }
     
     /**
      * Outputs the actual body of the module.
      * An Edulog module consists of at least one statement
      */
-    private def visitModuleBody(in: List[Assignment]): ir.Statement = {
-        ir.Block(in.map(visitAssignment))
+    private def visitModuleBody(in: List[Assignment], currentModule: String): ir.Statement = {
+        ir.Block(in.map(visitAssignment(_, currentModule)))
     }
     
     /**
      * This is the method that handles the interesting part of Edulog: the assignments
      */
-    private def visitAssignment(in: Assignment): ir.Statement = {
+    private def visitAssignment(in: Assignment, currentModule: String): ir.Statement = {
+        var mainAsgType = ir.UIntType(ir.UnknownWidth)
+
         in.right match {
             case RegisterCall(inside) => {
                 assert(in.left.length == 1) // can only have one thing to assign to
                 var destNet = in.left.head
-                
-                var regType = ir.UIntType(ir.UnknownWidth)
+
                 ir.Block(Seq(
-                    ir.DefRegister(visitInfo(destNet), destNet.name, regType, clock, reset, registerInit),
-                    ir.Connect(visitInfo(in), ir.Reference(destNet.name, regType), visitExpr(inside))
+                    ir.DefRegister(visitInfo(destNet), destNet.name, mainAsgType, clock, reset, registerInit),
+                    ir.Connect(visitInfo(inside), ir.Reference(destNet.name, mainAsgType), visitExpr(inside))
                 ))
             }
-            //case ModuleCall =>
-                /*
-            case Expr => {
+            case ModuleCall(name, inputs) => {
+                val instName = moduleNamespace.newName("_modinst")
+                val instRef = ir.Reference(instName, ir.UnknownType)
+
+                if (!modules.contains(name)) {
+                    throw new Exception(s"module name ${name} not defined")
+                }
+
+                val stmts = collection.mutable.ArrayBuffer[ir.Statement]()
+
+                // define the instance
+                stmts += ir.DefInstance(visitInfo(in), instName, name)
+                stmts += ir.Connect(ir.NoInfo, ir.SubField(instRef, "clock", ir.ClockType), clock)
+                stmts += ir.Connect(ir.NoInfo, ir.SubField(instRef, "reset", ir.ResetType), reset)
+
+                // for each input, create a connection to the bundle type
+                assert(inputs.length == modules(name)._1.length) // must have all inputs defined
+                for ((myExpr, moduleNet) <- inputs zip modules(name)._1) {
+                    stmts += ir.Connect(
+                        ir.NoInfo,
+                        ir.SubField(instRef, moduleNet.name, ir.UnknownType), // input to the module
+                        visitExpr(myExpr) // this is the expr we're pulling from for the instance
+                    )
+                }
+
+                // for each output, create a wire and assign the module output to that wire
+                assert(in.left.length == modules(name)._2.length) // must have same amount of outputs as are defined
+                for ((myNet, moduleNet) <- in.left zip modules(name)._2) {
+                    stmts += ir.DefWire(ir.NoInfo, myNet.name, mainAsgType)
+                    stmts += ir.Connect(
+                        ir.NoInfo,
+                        ir.Reference(myNet.name, mainAsgType), // this is the destination
+                        ir.SubField(instRef, moduleNet.name, ir.UnknownType)
+                    )
+                }
+
+                ir.Block(stmts)
+            }
+            case e: Expr => {
                 assert(in.left.length == 1) // can only have one thing to assign to
                 var destNet = in.left.head
-                
-                ir.Connect(visitInfo(in), )
-            }*/
+
+                var wireStmt: Statement = ir.DefWire(visitInfo(in), destNet.name, mainAsgType)
+                // is the dest an output? if so, no need to create a wire for it
+                if (modules(currentModule)._2.map(_.name).contains(destNet.name)) {
+                    wireStmt = ir.EmptyStmt
+                }
+
+                ir.Block(Seq(
+                    wireStmt,
+                    ir.Connect(visitInfo(e), ir.Reference(destNet.name, mainAsgType), visitExpr(e))
+                ))
+            }
             //case Mux =>
         }
     }
@@ -147,11 +208,29 @@ object EdulogVisitor {
                 }
             }
 
-            case NumericLiteral(v) => ir.UIntLiteral(v, ir.UnknownWidth)
+            case NumericLiteral(v) => {
+                var tmp = WrappedInt(v).U
+                tmp
+            }
             
-            case SignExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
-            case ZeroExtension(operand, width) => ir.DoPrim(PrimOps.Pad, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
-            case Replication(operand, count) => ir.DoPrim(PrimOps.Cat, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
+            case SignExtension(operand, width) => {
+                // first convert to SInt
+                var x = ir.DoPrim(PrimOps.AsSInt, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
+
+                // then do the pad
+                var y = ir.DoPrim(PrimOps.Pad, Seq(x), Seq(width), ir.SIntType(ir.UnknownWidth))
+
+                // now return to UInt
+                ir.DoPrim(PrimOps.AsUInt, Seq(y), Seq(), ir.UIntType(ir.UnknownWidth))
+            }
+            case ZeroExtension(operand, width) => {
+                // first convert to UInt
+                var x = ir.DoPrim(PrimOps.AsUInt, Seq(visitExpr(operand)), Seq(), ir.UnknownType)
+
+                // then do the pad
+                ir.DoPrim(PrimOps.Pad, Seq(x), Seq(width), ir.UIntType(ir.UnknownWidth))
+            }
+            case Replication(operand, count) => ir.DoPrim(PrimOps.Cat, Seq(visitExpr(operand)), Seq(count), ir.UIntType(ir.UnknownWidth))
             case Concatenation(operands) => ir.DoPrim(PrimOps.Cat, Seq(), Seq(), ir.UIntType(ir.UnknownWidth))
         }
     }

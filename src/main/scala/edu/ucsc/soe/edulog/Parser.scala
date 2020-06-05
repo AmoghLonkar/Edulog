@@ -15,7 +15,7 @@ case class Assignment(left: List[Net], right: AssignmentRHS) extends ASTNode
 sealed trait AssignmentRHS extends ASTNode
 sealed trait Expr extends AssignmentRHS
 case class RegisterCall(in: Expr) extends AssignmentRHS
-case class ModuleCall(name: String, inputs: List[Net]) extends AssignmentRHS
+case class ModuleCall(name: String, inputs: List[Expr]) extends AssignmentRHS
 case class Mux(selector: Expr, inputs: List[Expr]) extends AssignmentRHS
 
 object BinaryOpType extends Enumeration {
@@ -87,7 +87,7 @@ object EdulogParser extends StandardTokenParsers {
     override val lexical = new EdulogLexical
 
     lexical.reserved += ("module", "register", "mux", "sext", "zext", "rep", "clock", "reset")
-    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~")
+    lexical.delimiters += (",", ":", "=", "(", ")", "{", "}", "[", "]", "&", "|", "^", "+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "<<", ">>", "'", "~", "#")
     
     def moduleDeclaration: Parser[ModuleDeclaration] = positioned { rep1sep(netOne, ",") ~ "=" ~ "module" ~ ident ~ "(" ~ repsep(netOne, ",") ~ ")" ~ "{" ~ rep1(assignment) ~ "}" ^^ {
         case outputs ~ "=" ~ "module" ~ modName ~ "(" ~ inputs ~ ")" ~ "{" ~ assignments ~ "}" => {
@@ -120,20 +120,30 @@ object EdulogParser extends StandardTokenParsers {
     }}
     
     def assignmentRHS: Parser[AssignmentRHS] = positioned { registerCall | moduleCall | expr | mux }
-    
+    //def assignmentRHS: Parser[AssignmentRHS] = positioned { muxModuleRegister | expr }
+
     def registerCall: Parser[RegisterCall] = positioned { "register" ~ "(" ~> expr <~ ")" ^^ {
         case e => RegisterCall(e)
     }}
     
-    def moduleCall: Parser[ModuleCall] = positioned { ident ~ "(" ~ repsep(net, ",") ~ ")" ^^ {
+    def moduleCall: Parser[ModuleCall] = positioned { ident ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
     }}
    
     def mux: Parser[Mux] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
       case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
     }}
-    
-    
+
+    /*
+    def muxModuleRegister: Parser[AssignmentRHS] = "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
+        case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
+    } | "register" ~ "(" ~> expr <~ ")" ^^ {
+        case e => RegisterCall(e)
+    } | "#" ~> ident ~ "(" ~ repsep(net, ",") ~ ")" ^^ {
+        case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
+    }
+    */
+
     def bitwiseReduction: Parser[UnaryOp] = positioned { "'" ~ ("&" | "|" | "^") ~ expr ^^ {
         case _ ~ "&" ~ e => UnaryOp(UnaryOpType.ReduceAnd, e)
         case _ ~ "|" ~ e => UnaryOp(UnaryOpType.ReduceOr, e)

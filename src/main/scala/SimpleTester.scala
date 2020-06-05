@@ -9,12 +9,23 @@ object SimpleTester extends App {
         """
         out1[5], out2[4] = module Bla (in1[5], in2[8]) {
             out1 = register (in1 & in2 & in1 & in2 | in1)
-            
+
+            out2 = out1 sext 5
+
+            uselessNet1, uselessNet2 = Test2 ( 'b1 )
 
             //out2 = out1 & out3 == {net1, net6} + 'd98
             
             //out6 = ({a, b, c}) sext 8
-            
+
+        }
+
+        blabla[1], asdf[8] = module Test2 (something[1]) {
+            blabla = 'h1
+
+            uselessInternalNet = 'h500
+
+            asdf = something zext 8
         }
     
         """
