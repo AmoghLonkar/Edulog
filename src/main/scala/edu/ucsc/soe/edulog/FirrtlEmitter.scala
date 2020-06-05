@@ -150,7 +150,13 @@ object EdulogVisitor {
                     ir.Connect(visitInfo(e), ir.Reference(destNet.name, mainAsgType), visitExpr(e))
                 ))
             }
-            //case Mux =>
+            case Mux(cond, inputs) => {
+              assert(in.left.length == 1) // can only have one thing to assign to
+              var destNet = in.left.head
+
+              ir.Block(Seq(ir.Block.mapExpr(ir.Mux(visitExpr(cond), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType))))
+
+            } 
         }
     }
     
