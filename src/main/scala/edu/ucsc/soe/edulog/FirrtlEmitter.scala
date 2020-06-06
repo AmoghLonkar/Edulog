@@ -150,11 +150,16 @@ object EdulogVisitor {
                     ir.Connect(visitInfo(e), ir.Reference(destNet.name, mainAsgType), visitExpr(e))
                 ))
             }
-            case Mux(cond, inputs) => {
+            case MuxCall(cond, inputs) => {
               assert(in.left.length == 1) // can only have one thing to assign to
               var destNet = in.left.head
 
-              ir.Block(Seq(ir.Connect(visitInfo(destNet), ir.Reference(destNet.name, mainAsgType), ir.Mux(visitExpr(cond), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType))))
+              var wireStmt: Statement = ir.DefWire(visitInfo(cond), destNet.name, ir.UIntType(ir.UnknownWidth))
+              // is the dest an output? if so, no need to create a wire for it
+              if (modules(currentModule)._2.map(_.name).contains(destNet.name)) {
+                  wireStmt = ir.EmptyStmt
+              } 
+              ir.Block(Seq(wireStmt), visitInfo() ,ir.Reference(destNet.name, mainAsgType), ir.Mux(visitExpr(cond), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType)))
 
             } 
         }
