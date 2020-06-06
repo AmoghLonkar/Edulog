@@ -33,7 +33,7 @@ object EdulogVisitor {
     /**
      * This is used to create unique identifiers.
      */
-    private val moduleNamespace = Namespace()
+    private val identifierNamespace = Namespace()
 
     /**
      * Cache of the modules in the design. Filled in by visit() so that we know all module names, their inputs and outputs
@@ -92,17 +92,34 @@ object EdulogVisitor {
                 assert(in.left.length == 1) // can only have one thing to assign to
                 var destNet = in.left.head
 
-                ir.Block(Seq(
-                    ir.DefRegister(visitInfo(destNet), destNet.name, mainAsgType, clock, reset, registerInit),
-                    ir.Connect(visitInfo(inside), ir.Reference(destNet.name, mainAsgType), visitExpr(inside))
-                ))
+                val stmts = collection.mutable.ArrayBuffer[ir.Statement]()
+
+                // create the actual reg with a temporary name
+                val regName = identifierNamespace.newName("_register");
+                stmts += ir.DefRegister(visitInfo(destNet), regName, mainAsgType, clock, reset, registerInit)
+                stmts += ir.Connect(visitInfo(inside), ir.Reference(regName, mainAsgType), visitExpr(inside))
+
+                // check that we're not assigning to an input
+                if (modules(currentModule)._1.exists(_.name == destNet.name)) throwCodeError(s"attempting to assign to input ${destNet.name}", in.right)
+
+                // check if it's an output
+                if (!modules(currentModule)._2.exists(_.name == destNet.name)) {
+                    // since it wasn't an output, we have to store the result in a wire
+                    stmts += ir.DefWire(visitInfo(destNet), destNet.name, mainAsgType)
+                }
+
+                // connect the reg output to the wire or module output
+                stmts += ir.Connect(visitInfo(inside), ir.Reference(destNet.name, mainAsgType), ir.Reference(regName, ir.UnknownType))
+
+                // output the code
+                ir.Block(stmts)
             }
             case ModuleCall(name, inputs) => {
-                val instName = moduleNamespace.newName("_modinst")
+                val instName = identifierNamespace.newName("_modinst")
                 val instRef = ir.Reference(instName, ir.UnknownType)
 
                 if (!modules.contains(name)) {
-                    throw new Exception(s"module name ${name} not defined")
+                    throwCodeError(s"module name ${name} not defined", in.right)
                 }
 
                 val stmts = collection.mutable.ArrayBuffer[ir.Statement]()
@@ -207,12 +224,7 @@ object EdulogVisitor {
                     ir.DoPrim(PrimOps.Bits, Seq(theRef), Seq(BigInt(high), BigInt(low)), ir.UIntType(ir.UnknownWidth))
                 }
             }
-
-            case NumericLiteral(v) => {
-                var tmp = WrappedInt(v).U
-                tmp
-            }
-            
+            case NumericLiteral(v) => WrappedInt(v).U
             case SignExtension(operand, width) => {
                 // first convert to SInt
                 var x = ir.DoPrim(PrimOps.AsSInt, Seq(visitExpr(operand)), Seq(), ir.UIntType(ir.UnknownWidth))
@@ -240,4 +252,8 @@ object EdulogVisitor {
      * Basically, can it be used as a "ground type" in FIRRTL expressions.
      */
     private def isTerminal(e: Expr): Boolean = e.isInstanceOf[Net] || e.isInstanceOf[NumericLiteral]
+
+    private def throwCodeError(reason: String, where: ASTNode): Unit = {
+        throw new Exception(s"${reason}\n\tat ${where.pos}")
+    }
 }

@@ -36,7 +36,10 @@ object UnaryOpType extends Enumeration {
 }
 case class UnaryOp(op: UnaryOpType.Value, operand: Expr) extends Expr
 
-case class Net(name: String, high: Integer = null, low: Integer = null) extends Expr
+case class Net(name: String, high: Integer = null, low: Integer = null) extends Expr {
+    def isBitExtraction: Boolean = high != null && low != null
+    def getExtractSeq: Seq[BigInt] = Seq(BigInt(high), BigInt(low))
+}
 
 case class NumericLiteral(value: BigInt) extends Expr // note: width is in Expr
 object NumericLiteralBase extends Enumeration {
@@ -115,7 +118,7 @@ object EdulogParser extends StandardTokenParsers {
     }}
     def net: Parser[Net] = positioned { netHiLo ||| netOne ||| netNameOnly }
 
-    def assignment: Parser[Assignment] = positioned { rep1sep(net, ",") ~ "=" ~ assignmentRHS ^^ {
+    def assignment: Parser[Assignment] = positioned { rep1sep(netNameOnly, ",") ~ "=" ~ assignmentRHS ^^ {
         case destNets ~ "=" ~ rhs => Assignment(destNets, rhs)
     }}
     

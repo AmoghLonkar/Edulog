@@ -23,7 +23,7 @@ object SimpleTester extends App {
         blabla[1], asdf[8] = module Test2 (something[1]) {
             blabla = 'h1
 
-            uselessInternalNet = 'h500
+            uselessInternalNet = register ( 'h500 )
 
             asdf = something zext 8
         }
@@ -40,8 +40,9 @@ object SimpleTester extends App {
     
     // this part based on https://github.com/freechipsproject/firrtl/blob/master/src/test/scala/firrtlTests/fixed/FixedTypeInferenceSpec.scala
     val passes = Seq[Transform](
-        Splitter,
+        SplitExpressions,
         ToWorkingIR,
+        FixOutputPortFlow,
         InferTypes,
         CheckTypes,
         ResolveFlows,
