@@ -14,6 +14,7 @@ object SimpleTester extends App {
 
             uselessNet1, uselessNet2 = Test2 ( 'b1 )
 
+            mux1 = mux(uselessNet1, uselessNet1, uselessNet2)
             //out2 = out1 & out3 == {net1, net6} + 'd98
             
             //out6 = ({a, b, c}) sext 8
