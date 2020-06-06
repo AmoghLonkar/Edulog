@@ -154,7 +154,7 @@ object EdulogVisitor {
               assert(in.left.length == 1) // can only have one thing to assign to
               var destNet = in.left.head
 
-              ir.Block(Seq(ir.Block.mapExpr(ir.Mux(visitExpr(cond), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType))))
+              ir.Block(Seq(ir.Connect(visitInfo(destNet), ir.Reference(destNet.name, mainAsgType), ir.Mux(visitExpr(cond), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType))))
 
             } 
         }
