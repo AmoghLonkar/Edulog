@@ -131,7 +131,7 @@ object EdulogParser extends StandardTokenParsers {
     }}
    
     def mux: Parser[Mux] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
-      case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.drop(0))
+      case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.tail)
     }}
 
     /*
