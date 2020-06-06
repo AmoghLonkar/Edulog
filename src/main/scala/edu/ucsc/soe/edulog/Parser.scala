@@ -16,7 +16,7 @@ sealed trait AssignmentRHS extends ASTNode
 sealed trait Expr extends AssignmentRHS
 case class RegisterCall(in: Expr) extends AssignmentRHS
 case class ModuleCall(name: String, inputs: List[Expr]) extends AssignmentRHS
-case class Mux(selector: Expr, inputs: List[Expr]) extends AssignmentRHS
+case class MuxCall(selector: Expr, inputs: List[Expr]) extends AssignmentRHS
 
 object BinaryOpType extends Enumeration {
     type BinaryOpType = Value
@@ -130,8 +130,8 @@ object EdulogParser extends StandardTokenParsers {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
     }}
    
-    def mux: Parser[Mux] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
-      case "mux" ~ "(" ~ inputs ~ ")" => Mux(inputs(0), inputs.tail)
+    def mux: Parser[MuxCall] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
+      case "mux" ~ "(" ~ inputs ~ ")" => MuxCall(inputs(0), inputs.tail)
     }}
 
     /*
