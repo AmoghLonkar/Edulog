@@ -183,7 +183,7 @@ object EdulogVisitor {
                 ir.Connect( ir.NoInfo, ir.Reference(destNet.name, mainAsgType), ir.Mux(visitExpr(sel), visitExpr(inputs(0)), visitExpr(inputs(1)), ir.UnknownType))
                 ))
 
-            } 
+            }
         }
     }
     

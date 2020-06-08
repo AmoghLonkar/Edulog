@@ -56,8 +56,6 @@ case class Concatenation(operands: List[Expr]) extends Expr
 /**
  * Parser class for numeric types. Needs to be separate since it's not possible with StandardTokenParsers
  */
-// TODO: get rid of all of this and subclass StdLexical to modify lexer to accept based numbers
-//   can probably use https://github.com/stephentu/scala-sql-parser/blob/master/src/main/scala/parser.scala for inspiration
 
 /**
  * Main parser class
@@ -132,7 +130,7 @@ object EdulogParser extends StandardTokenParsers {
     def moduleCall: Parser[ModuleCall] = positioned { ident ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
         case modName ~ "(" ~ inputs ~ ")" => ModuleCall(modName, inputs)
     }}
-   
+
     def mux: Parser[MuxCall] = positioned { "mux" ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
       case "mux" ~ "(" ~ inputs ~ ")" => MuxCall(inputs(0), inputs.tail)
     }}
@@ -250,26 +248,3 @@ object EdulogParser extends StandardTokenParsers {
     //def parseAll(in: String): ParseResult[List[Net]] = phrase(topLevel)(new lexical.Scanner(in))
     //def parseAll[T](p: Parser[T], in: String): ParseResult[T] = phrase(p)(new lexical.Scanner(in))
 }
-
-/*
-
-out1[5], out2[4] = module Bla (in1[5], in2[8]) {
-    reg1[5] = register (in1) 
-    
-    out1, other[8] = OtherModule(reg1, in2)
-    
-    out2 = other[3:0]
-    
-    out2 = mux (other[3:0]) {
-        b0010: a & b
-    }
-}
-
-
-out_a[5], out_b[4] = module OtherModule (in_a[5], in_b[8]) {
-    ...
-}
-
-
-(out1, other[8]) = OtherModule(reg1, in2)
-*/
