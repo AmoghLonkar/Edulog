@@ -15,10 +15,10 @@ Given this code (see `SimpleTester.scala`):
     
 You should get:
 
-    [6.9] parsed: List(ModuleDeclaration(CombLogic,List(Net(in_a,1,1), Net(in_b,1,1), Net(in_c,1,1)),List(Net(output,1,1)),List(Assignment(List(Net(output,null,null)),BinaryOp(BitwiseOr,UnaryOp(Complement,BinaryOp(BitwiseAnd,Net(in_a,null,null),Net(in_b,null,null))),UnaryOp(Complement,BinaryOp(BitwiseAnd,BinaryOp(BitwiseAnd,Net(in_b,null,null),Net(in_a,null,null)),Net(in_c,null,null))))))))
-before transform:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	[6.9] parsed: List(ModuleDeclaration(CombLogic,List(Net(in_a,1,1), Net(in_b,1,1), Net(in_c,1,1)),List(Net(output,1,1)),List(Assignment(List(Net(output,null,null)),BinaryOp(BitwiseOr,UnaryOp(Complement,BinaryOp(BitwiseAnd,Net(in_a,null,null),Net(in_b,null,null))),UnaryOp(Complement,BinaryOp(BitwiseAnd,BinaryOp(BitwiseAnd,Net(in_b,null,null),Net(in_a,null,null)),Net(in_c,null,null))))))))
+	before transform:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -29,10 +29,10 @@ circuit EdulogCircuit :
     skip
     output <= or(neg(and(in_a, in_b)), neg(and(and(in_b, in_a), in_c))) @[line 3 col 19]
 
-=== doing firrtl.passes.SplitExpressions$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.SplitExpressions$ ===
+	result:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -48,10 +48,10 @@ circuit EdulogCircuit :
     node _GEN_4 = neg(_GEN_2) @[line 3 col 19]
     output <= or(_GEN_3, _GEN_4) @[line 3 col 19]
 
-=== doing firrtl.passes.ToWorkingIR$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.ToWorkingIR$ ===
+	result:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -67,10 +67,10 @@ circuit EdulogCircuit :
     node _GEN_4 = neg(_GEN_2) @[line 3 col 19]
     output <= or(_GEN_3, _GEN_4) @[line 3 col 19]
 
-=== doing edu.ucsc.soe.edulog.FixOutputPortFlow$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing edu.ucsc.soe.edulog.FixOutputPortFlow$ ===
+	result:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -88,10 +88,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.InferTypes$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.InferTypes$ ===
+	result:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -109,10 +109,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.CheckTypes$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.CheckTypes$ ===
+	result:
+	circuit EdulogCircuit :
+ 	 module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -130,10 +130,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.ResolveFlows$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.ResolveFlows$ ===
+	result:
+	circuit EdulogCircuit :
+ 	 module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -151,10 +151,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.CheckFlows$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.CheckFlows$ ===
+	result:
+	circuit EdulogCircuit :
+ 	 module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -172,10 +172,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.InferWidths ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.InferWidths ===
+	result:
+	circuit EdulogCircuit :
+ 	 module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -193,10 +193,10 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-=== doing firrtl.passes.CheckWidths$ ===
-result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	=== doing firrtl.passes.CheckWidths$ ===
+	result:
+	circuit EdulogCircuit :
+	  module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -214,9 +214,9 @@ circuit EdulogCircuit :
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
 
-final result:
-circuit EdulogCircuit :
-  module CombLogic : @[line 2 col 8]
+	final result:
+	circuit EdulogCircuit :
+  	module CombLogic : @[line 2 col 8]
     input clock : Clock
     input reset : Reset
     input in_a : UInt<1> @[line 2 col 37]
@@ -233,5 +233,3 @@ circuit EdulogCircuit :
     node _GEN_4 = neg(_GEN_2) @[line 3 col 19]
     _fixedoutput <= or(_GEN_3, _GEN_4) @[line 3 col 19]
     output <= _fixedoutput
-
-Next up is making expressions work as well.
