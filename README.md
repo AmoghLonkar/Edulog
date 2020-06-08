@@ -1,6 +1,6 @@
 # Edulog
 
-Some super simple parsing is now working. To try it, do:
+To perform an Edulog to FIRRTL Transform, do:
 
     $ sbt
     sbt:edulog> compile
