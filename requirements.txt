@@ -1,0 +1,3 @@
+Scala(Requires at least V2.11.12)
+sbt (Requires at least v0.13.6)
+FIRRTL (Available at https://github.com/freechipsproject/firrtl.git)
