@@ -1,4 +1,4 @@
-out[3] = module Counter(val, clr, ld, en){
+out[3] = module Counter(val[3], clr[1], ld[1], en[1]){
 	init = 0
 	reg1[3] = register(init)
 	
