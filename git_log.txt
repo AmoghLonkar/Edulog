@@ -1,0 +1,288 @@
+commit 6846189a01810aca7c06c2e80123318efe57c869
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sun Jun 7 19:30:07 2020 -0700
+
+    Updating tester
+
+commit 3d53a6197f0dec0ac624a24d748560388dbe8204
+Merge: 35b2bf8 610571c
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat Jun 6 11:49:08 2020 -0700
+
+    Merge remote-tracking branch 'origin/thomas-parser-otherwork' into thomas-parser
+
+commit 35b2bf8f75a43d45e2a64dac6a283414beb58474
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat Jun 6 11:48:52 2020 -0700
+
+    Updated tester with mux
+
+commit 94f07283f8eb054a31bdf57123495a0903a14ae0
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat Jun 6 11:46:15 2020 -0700
+
+    Mux works!
+
+commit 4fc3228b82c0c7d61dddb4b8bf3a5d22f28e3b86
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 22:05:37 2020 -0700
+
+    Need to resolve key not found issue
+
+commit 572f5f9d8d0d4968e6c4be3aeb9ec2a2923f825b
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 21:58:32 2020 -0700
+
+    Updated mux name
+
+commit 3bd7c8c10a1775dccb73993e2683b8258ff77294
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 21:58:01 2020 -0700
+
+    Getting errors with mux
+
+commit 610571caa3bd6a0d10f9d6a7f8dc1cbb483e9a5e
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Fri Jun 5 20:47:06 2020 -0700
+
+    lots of fixes, especially for using an output as a net in another expression. still not complete, but here's a checkpoint
+
+commit 70fd810ec03f90e143ae8491c8312de1479a05d2
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 19:52:12 2020 -0700
+
+    Fixed parsing for mux
+
+commit bd031c99e896592454e703b16d6fef8c1c1207c0
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 19:27:03 2020 -0700
+
+    Mux works!
+
+commit ee059c7e31fd704258709b0f6a0fbf65eae9c4ca
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Fri Jun 5 16:48:36 2020 -0700
+
+    Need to convert from epr to statement
+
+commit c4e05892b1089a06a2d9a2b07d64c38ce1a1a489
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Fri Jun 5 02:01:45 2020 -0700
+
+    module support almost done, lots of other changes too
+
+commit 7c5466e8f50b8ef9a9550980a429aabde563f70d
+Merge: b0820fa 2be6eaa
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 23:06:27 2020 -0700
+
+    fixed a merge conflict
+
+commit b0820fa5d11b6d8ffac0332248b667b8af608f6d
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 23:04:11 2020 -0700
+
+    FIRRTL generation seems to work now
+
+commit 2be6eaad72ef46af7843af35bfb641bc9e37ff10
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Wed Jun 3 21:22:14 2020 -0700
+
+    Removed to-do comment
+
+commit e9c34ea1761b535b091b877e89e92c364988b834
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Wed Jun 3 21:21:07 2020 -0700
+
+    Added support for Padding/Concatenation expressions
+
+commit 210219a0d821e1e2b9e11c7451c076cbea5a273c
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Wed Jun 3 20:11:36 2020 -0700
+
+    Added support for binary and unary expressions
+
+commit 6a8e01d4dd127639d62bf99be7a3cc6e720ed384
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Wed Jun 3 18:51:30 2020 -0700
+
+    Updating with option for scala version
+
+commit a37ab24e6e312e2a3a721a03eb1b8b4857c0b63a
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 15:50:09 2020 -0700
+
+    Replaced the custom intermediate node generator with a FIRRTL pass borrowed from the FIRRTL wiki
+
+commit c863a482ef97d18cd5421c3369acde3c4f81e7a9
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 15:25:21 2020 -0700
+
+    .
+
+commit 24786c028bc981cd7703e41087caf3f9f34070b6
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 14:31:26 2020 -0700
+
+    FIRRTL is being generated, but needs some work
+
+commit de3bd987698b98fc515740259443651508d46c91
+Author: Thomas J Nijssen <tnijssen@ucsc.edu>
+Date:   Wed Jun 3 02:34:41 2020 -0700
+
+    some code written for visitor, super basic but it compiles. untested, however
+
+commit 8d23ee6fc2d8bc086379deec9713a027bb35f076
+Author: Thomas J Nijssen <tnijssen@keylime.soe.ucsc.edu>
+Date:   Mon Jun 1 19:32:25 2020 -0700
+
+    WIP adding Converter
+
+commit 354e0e5fca51f12743ab327fc658f3456ebb7205
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sun May 31 20:33:06 2020 -0700
+
+    Parses mux correctly!
+
+commit fd1a15a597f437e3d142cc96ee56aa8d9f58e6a8
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sun May 31 20:10:35 2020 -0700
+
+    Mux compiles without errors!
+
+commit 0aa8eed86d45683b83d8d01ead256fc754f4c299
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sun May 31 18:45:46 2020 -0700
+
+    Few errors for mux
+
+commit 42f8c73d665a7da05bc127f4fc4742cf2f3a830d
+Author: Thomas J Nijssen <tnijssen@keylime.soe.ucsc.edu>
+Date:   Sun May 31 00:18:05 2020 -0700
+
+    fixed extension support
+
+commit 188c9bee0a34671542ee9cea6d5c4cc5654566df
+Author: Thomas J Nijssen <tnijssen@keylime.soe.ucsc.edu>
+Date:   Sun May 31 00:11:38 2020 -0700
+
+    I think it works!
+    had to delete the jar file since it was causing problems
+    added in support for actual leaf elements (nets, numbers)
+    also added parentheses
+    fixed missign bitwise and
+
+commit 6a60cf1fe0f3d8ce6d41b5a12dd9c93da64daee7
+Merge: 99d0cc6 ecfd607
+Author: Thomas J Nijssen <tnijssen@keylime.soe.ucsc.edu>
+Date:   Sat May 30 23:55:15 2020 -0700
+
+    Merge branch 'thomas-parser' of github.com:AmoghLonkar/Edulog into thomas-parser
+
+commit 99d0cc6dd4aa87dd02bf0fb029e31b75f7605eea
+Author: Thomas J Nijssen <tnijssen@keylime.soe.ucsc.edu>
+Date:   Sat May 30 23:54:58 2020 -0700
+
+    parser with expressions compiles but rejects any assignment with an expression
+
+commit ecfd6074fa1be6f11e9ec95039c64348c3c91367
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat May 30 23:01:54 2020 -0700
+
+    Adding jar file for parser combinator library
+
+commit 79d7227893407c6223aaf8540b98e68460248ddc
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat May 30 22:42:10 2020 -0700
+
+    Removed ']', need to fix errors
+
+commit d5a2f5656a6de10514ccb73bbd8330a68b1c112c
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat May 30 22:28:13 2020 -0700
+
+    Fixed parsing of reduction operations
+
+commit 6dd5cd7e6061d014cca6cafefd0c9fc3027d31be
+Author: AmoghLonkar <alonkar@ucsc.edu>
+Date:   Sat May 30 22:03:45 2020 -0700
+
+    Added code for reduction expressions
+
+commit 1176764877a88b7f2e688b07db4909198d8edf15
+Author: Thomas Nijssen <tnijssen@ucsc.edu>
+Date:   Fri May 29 20:40:25 2020 -0700
+
+    some more changes, not ready yet but getting there
+
+commit 800f13327c97a1e0dceed83411fc0a6f64d4bfed
+Author: Thomas Nijssen <tnijssen@ucsc.edu>
+Date:   Fri May 29 16:39:06 2020 -0700
+
+    number parsing works now
+
+commit c45b19b6411799e1614e20a9fc7085e05becf777
+Author: Thomas Nijssen <tnijssen@ucsc.edu>
+Date:   Fri May 29 01:04:27 2020 -0700
+
+    several changes but there are some compilation issues
+
+commit 2edc5f0b2da08019d01324c88ea2e94e94ce5e09
+Author: Thomas Nijssen <thomas@the-matrix>
+Date:   Sat May 23 00:52:47 2020 -0700
+
+    some more changes
+
+commit f39b103d8f8554a1f0eddd5ec13aaa5e267b7ae6
+Author: Thomas Nijssen <thomasnijssen97@gmail.com>
+Date:   Thu May 21 20:23:15 2020 -0700
+
+    more changes not ready
+
+commit bc9f5e63c463b97b3a3c79c56f9f606e1083928e
+Author: Thomas Nijssen <thomasnijssen97@gmail.com>
+Date:   Thu May 21 18:10:18 2020 -0700
+
+    checking in work so far
+
+commit 90a97b65c8f11642005e3c95de98dbd896577781
+Author: Thomas Nijssen <thomasnijssen97@gmail.com>
+Date:   Wed May 20 20:24:11 2020 -0700
+
+    added support for super simple expressions
+
+commit 3b92ab2b95133f8a625ee684b1b44997207d9ade
+Author: Thomas Nijssen <thomasnijssen97@gmail.com>
+Date:   Wed May 20 14:01:28 2020 -0700
+
+    saving this before trying a different approach
+
+commit 0a5436da06d7c49751875caa6e0f1bbdd7aaef9c
+Author: Thomas Nijssen <thomasnijssen97@gmail.com>
+Date:   Wed May 20 00:30:26 2020 -0700
+
+    started working on parser
+
+commit a11e0483192d1c71c805714f01ffbbd6facb1a1a
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Tue May 19 16:49:04 2020 -0700
+
+    Uploading Chisel source code
+
+commit 785e9072a61efa8d9f7686ef8e43ba14906fb647
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Tue May 19 16:48:25 2020 -0700
+
+    Uploading FIRRTL and Verilog files
+
+commit e70ba662368b954cf31b082fa2da3c058a6b808d
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Mon May 18 18:46:55 2020 -0700
+
+    Test script to verify correctness of FIRRTL
+
+commit ab17a8adc96e5c7572cec3cca9989ecd218c7f7f
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Mon May 18 10:14:39 2020 -0700
+
+    Initial commit
