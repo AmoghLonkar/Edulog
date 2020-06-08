@@ -1,0 +1,65 @@
+commit ab358c89bf1e1bcf7a115d2962d1485d1b635c2e
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Sun Jun 7 19:32:56 2020 -0700
+
+    Update SimpleTester.scala
+
+commit 5b29d25b91b23dfb2ca1baa02747e39416ef760a
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Sun Jun 7 19:18:21 2020 -0700
+
+    Adding bitwidths for inputs
+
+commit 65bf0d37a9eb4b8778e7c4252cee154b289a8894
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Sun Jun 7 19:17:44 2020 -0700
+
+    Adding bitwidths for input and outputs
+
+commit 2c11c425de3cbe0b1206f1e4317c07a9b8829749
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Sat Jun 6 12:19:30 2020 -0700
+
+    Adding Scala files
+
+commit d4cfef49e559b91a91828bc922c6e315d94545bc
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Fri May 22 18:47:51 2020 -0700
+
+    Correctly instantiated mux
+
+commit 195eb5950006cad0357979b123829bc4931c4b17
+Author: Amogh Lonkar <alonkar@keylime.soe.ucsc.edu>
+Date:   Thu May 21 19:50:53 2020 -0700
+
+    Removed unwanted files
+
+commit def3ab9f677c1e74cbda0ed06a50c8a7c37471f5
+Author: Amogh Lonkar <alonkar@keylime.soe.ucsc.edu>
+Date:   Thu May 21 19:45:59 2020 -0700
+
+    Reorganized files and added demo Edulog designs
+
+commit a11e0483192d1c71c805714f01ffbbd6facb1a1a
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Tue May 19 16:49:04 2020 -0700
+
+    Uploading Chisel source code
+
+commit 785e9072a61efa8d9f7686ef8e43ba14906fb647
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Tue May 19 16:48:25 2020 -0700
+
+    Uploading FIRRTL and Verilog files
+
+commit e70ba662368b954cf31b082fa2da3c058a6b808d
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Mon May 18 18:46:55 2020 -0700
+
+    Test script to verify correctness of FIRRTL
+
+commit ab17a8adc96e5c7572cec3cca9989ecd218c7f7f
+Author: Amogh Lonkar <35778429+AmoghLonkar@users.noreply.github.com>
+Date:   Mon May 18 10:14:39 2020 -0700
+
+    Initial commit
