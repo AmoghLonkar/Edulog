@@ -7,20 +7,14 @@ object SimpleTester extends App {
     
     val res = EdulogParser.parseAll(
         """
-<<<<<<< HEAD
-       output[1] = module CombLogic(in_a[1], in_b[1], in_c[1]){
-	        output = (~in_a & in_b) | (~in_b & in_a & in_c)
-        }   
-
-=======
         out1[5], out2[4] = module Bla (in1[5], in2[8]) {
             out1 = register (in1 & in2 & in1 & in2 | in1)
 
-            out2 = out1 sext 5
+            //out2 = in2 sext 5
 
             uselessNet1, uselessNet2 = Test2 ( 'b1 )
 
-            //out2 = out1 & out3 == {net1, net6} + 'd98
+            out2 = in1 + in2 == 'd98
             
             //out6 = ({a, b, c}) sext 8
 
@@ -34,7 +28,6 @@ object SimpleTester extends App {
             asdf = something zext 8
         }
     
->>>>>>> thomas-parser-otherwork
         """
     )
     
@@ -49,7 +42,7 @@ object SimpleTester extends App {
     val passes = Seq[Transform](
         SplitExpressions,
         ToWorkingIR,
-        FixOutputPortFlow,
+        //FixOutputPortFlow,
         InferTypes,
         CheckTypes,
         ResolveFlows,
